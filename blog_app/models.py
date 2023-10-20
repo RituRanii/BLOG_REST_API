@@ -14,14 +14,13 @@ class Blog(models.Model):
     blog_title = models.CharField(max_length=100)
     author = models.CharField(max_length=100)
     blog_description = models.TextField()
-    category = models.ForeignKey(Category,on_delete=models.SET_NULL,null=True,name="category")
+    category = models.ForeignKey(Category,on_delete=models.SET_NULL,null=True,related_name="category")
     post_date = models.DateField(default=date.today)
     slug = models.CharField(max_length=1000, null=True, blank=True)
     is_public = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.blog_title + " ==> " + str(self.author)
-
+        return self.blog_title
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.blog_title)

@@ -1,45 +1,31 @@
 from rest_framework import serializers
-from blog_app.models import Blog
+from blog_app.models import Blog, Category
 
-# Create your views here.
-# def validate_name(self,value):
-#     if len(value) <4:
-#         raise serializers.ValidationError("Blog title is very short")
-#     else:
-#         return value
-#         fields = ['name','description','is_public','slug']
-#         exclude=['post_date']
-def blog_title_valid(value):
-   if len(value)<4:
-      raise serializers.ValidationError('Title must be more than 3 characters')
-   else:
-      return value
 class BlogSerializer(serializers.ModelSerializer):
-  id = serializers.IntegerField(read_only=True)
-  blog_title = serializers.CharField(validators = [blog_title_valid])
-  author = serializers.CharField()
-  blog_description = serializers.CharField()
-  post_date = serializers.DateField(required=False)
-  is_public= serializers.BooleanField()
-  slug = serializers.CharField(required=False)
-
   class Meta:
     model = Blog
     fields = "__all__"
-  def validate(self,data):
-    if data['blog_title'] == data['blog_description']:
-      raise serializers.ValidationError("Blog title and description can not be same")
-    else:
-      return data
 
-#  def create(self, validate_data):
-#     return Blog.objects.create(**validate_data)
-#  def update(self, instance, validated_data):
-#     instance.name = validated_data.get("name", instance.name)
-#     instance.author = validated_data.get("author", instance.author)
-#     instance.description = validated_data.get("description", instance.description)
-#     instance.post_date = validated_data.get("post_date", instance.post_date)
-#     instance.is_public = validated_data.get("is_public", instance.is_public)
-#     instance.slug = validated_data.get("slug", instance.slug)
-#     instance.save()
-#     return instance
+class CategorySerializer(serializers.ModelSerializer):
+   category_name = serializers.CharField()
+   category = BlogSerializer(many = True, read_only= True)
+
+   class Meta:
+     model = Category
+     exclude = ['id',]
+
+# class CategorySerializer(serializers.HyperlinkedModelSerializer):
+#   category_name = serializers.CharField()
+#   category = BlogSerializer(many = True, read_only= True)
+#   # category = serializers.StringRelatedField(many=True)
+#   # category = serializers.PrimaryKeyRelatedField(many=True,read_only=True)
+#   # category = serializers.HyperlinkedRelatedField(
+#   #   many=True,
+#   #   read_only=True,
+#   #   view_name= 'blog_detail',
+#   # )
+#   # category = serializers.SlugRelatedField(many=True, read_only=True, slug_field='slug')
+
+  # class Meta:
+  #   model = Category
+  #   fields = '__all__'
