@@ -1,31 +1,38 @@
 from rest_framework import serializers
-from blog_app.models import Blog, Category
+from blog_app.models import *
+from django.urls import reverse
 
+class BlogCommentSerializer(serializers.ModelSerializer):
+   blog = serializers.StringRelatedField(read_only=True)
+   author = serializers.ReadOnlyField(source='author.username')
+   class Meta:
+     model = BlogComment
+     fields = "__all__"
 class BlogSerializer(serializers.ModelSerializer):
+  comments = serializers.SerializerMethodField()
+  author = serializers.StringRelatedField(read_only=True)
   class Meta:
     model = Blog
     fields = "__all__"
 
+  def get_comments(self, obj):
+    comments = BlogComment.objects.filter(blog=obj)[:3]
+    request = getattr(self.context, 'request', None)  # Get request or set to None if not available
+    if request:
+        return {
+            "comments": BlogCommentSerializer(comments, many=True).data,
+            "all_comment_link": request.build_absolute_uri(reverse('blog_comment_list', kwargs={'blog_id': obj.id}))
+        }
+    else:
+        return {
+            "comments": BlogCommentSerializer(comments, many=True).data,
+            "all_comment_link": None  # or any default value you prefer
+        }
 class CategorySerializer(serializers.ModelSerializer):
+   id = serializers.IntegerField(read_only = True)
    category_name = serializers.CharField()
    category = BlogSerializer(many = True, read_only= True)
 
    class Meta:
      model = Category
-     exclude = ['id',]
-
-# class CategorySerializer(serializers.HyperlinkedModelSerializer):
-#   category_name = serializers.CharField()
-#   category = BlogSerializer(many = True, read_only= True)
-#   # category = serializers.StringRelatedField(many=True)
-#   # category = serializers.PrimaryKeyRelatedField(many=True,read_only=True)
-#   # category = serializers.HyperlinkedRelatedField(
-#   #   many=True,
-#   #   read_only=True,
-#   #   view_name= 'blog_detail',
-#   # )
-#   # category = serializers.SlugRelatedField(many=True, read_only=True, slug_field='slug')
-
-  # class Meta:
-  #   model = Category
-  #   fields = '__all__'
+     fields = "__all__"
